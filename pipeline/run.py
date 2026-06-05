@@ -1,7 +1,7 @@
 import sys
+import time
 from pathlib import Path
 
-# make the project root importable so db/ and scrapers/ can be used
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import httpx
@@ -10,7 +10,11 @@ from sqlalchemy import text
 from db.connection import get_engine
 from scrapers.parse_argenprop import parse_listings
 
+# clean base URL (no ?pagina, no sort); the loop adds page numbers
 SEARCH_URL = "https://www.argenprop.com/departamentos/venta/capital-federal"
+
+MAX_PAGES = 15          
+DELAY_SECONDS = 2.0     
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
@@ -23,6 +27,34 @@ def fetch(url):
     resp = httpx.get(url, headers=HEADERS, follow_redirects=True, timeout=30)
     resp.raise_for_status()
     return resp.text
+
+
+def page_url(base, page):
+    return base if page == 1 else f"{base}?pagina-{page}"
+
+
+def collect_listings(base_url):
+    all_items = []
+    seen_ids = set()
+    for page in range(1, MAX_PAGES + 1):
+        print(f"  page {page}...", end=" ", flush=True)
+        items = parse_listings(fetch(page_url(base_url, page)))
+        if not items:
+            print("no listings, stopping.")
+            break
+        new_here = 0
+        for item in items:
+            sid = item["source_id"]
+            if sid and sid not in seen_ids:
+                seen_ids.add(sid)
+                all_items.append(item)
+                new_here += 1
+        print(f"{len(items)} on page, {new_here} new")
+        if new_here == 0:
+            print("  no new listings, stopping.")
+            break
+        time.sleep(DELAY_SECONDS)
+    return all_items
 
 
 def store(listings):
@@ -89,10 +121,9 @@ def store(listings):
 
 
 if __name__ == "__main__":
-    print("Fetching...")
-    html = fetch(SEARCH_URL)
-    listings = parse_listings(html)
-    print(f"Parsed {len(listings)} listings, storing...")
+    print("Fetching pages...")
+    listings = collect_listings(SEARCH_URL)
+    print(f"\nCollected {len(listings)} unique listings, storing...")
     run_id, seen, new = store(listings)
     print(f"Run {run_id}: {seen} seen, {new} new.")
 
