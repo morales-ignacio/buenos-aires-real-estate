@@ -53,12 +53,7 @@ CREATE TABLE IF NOT EXISTS listing_snapshots (
     captured_at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS exchange_rates (
-    date        DATE PRIMARY KEY,
-    usd_oficial NUMERIC,
-    usd_blue    NUMERIC,
-    usd_mep     NUMERIC
-);
+
 
 CREATE INDEX IF NOT EXISTS idx_snap_listing_time ON listing_snapshots (listing_id, captured_at);
 CREATE INDEX IF NOT EXISTS idx_listings_hood ON listings (neighborhood_id);
