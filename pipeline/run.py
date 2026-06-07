@@ -13,7 +13,7 @@ from scrapers.parse_argenprop import parse_listings
 # clean base URL (no ?pagina, no sort); the loop adds page numbers
 SEARCH_URL = "https://www.argenprop.com/departamentos/venta/capital-federal"
 
-MAX_PAGES = 15          
+MAX_PAGES = 100         
 DELAY_SECONDS = 2.0     
 
 HEADERS = {
@@ -38,10 +38,24 @@ def collect_listings(base_url):
     seen_ids = set()
     for page in range(1, MAX_PAGES + 1):
         print(f"  page {page}...", end=" ", flush=True)
-        items = parse_listings(fetch(page_url(base_url, page)))
-        if not items:
-            print("no listings, stopping.")
+
+        # intentar la página hasta 3 veces antes de rendirse (por timeouts puntuales)
+        items = None
+        for attempt in range(3):
+            try:
+                items = parse_listings(fetch(page_url(base_url, page)))
+                break
+            except Exception as e:
+                print(f"reintento ({type(e).__name__})...", end=" ", flush=True)
+                time.sleep(5)
+
+        if items is None:
+            print("la página falló tras varios intentos, corto y guardo lo que tengo.")
             break
+        if not items:
+            print("sin avisos, corto.")
+            break
+
         new_here = 0
         for item in items:
             sid = item["source_id"]
@@ -49,11 +63,12 @@ def collect_listings(base_url):
                 seen_ids.add(sid)
                 all_items.append(item)
                 new_here += 1
-        print(f"{len(items)} on page, {new_here} new")
+        print(f"{len(items)} en la página, {new_here} nuevos")
         if new_here == 0:
-            print("  no new listings, stopping.")
+            print("  sin avisos nuevos, corto.")
             break
         time.sleep(DELAY_SECONDS)
+
     return all_items
 
 
