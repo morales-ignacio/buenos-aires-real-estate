@@ -1,42 +1,46 @@
-# Buenos Aires Real Estate Trends
+# Buenos Aires Real Estate
 
 > **Status:** In progress, updated as I build it out.
 
-An end-to-end data pipeline that scrapes Buenos Aires property listings, builds a longitudinal price dataset, and turns it into a written market analysis. It focuses on what most scraping projects skip:
+An end-to-end data pipeline that scrapes Buenos Aires property listings, builds a structured dataset of current listings, and turns it into a written market analysis. It focuses on the things that make scraped data actually usable:
 
-- **A real time series**, daily snapshots instead of a one-off scrape
-- **USD versus peso tracking**, listings joined to daily exchange rates
-- **Days on market and price drops**, inferred from listings appearing and disappearing over time
-- **A reproducible pipeline**, scheduled collection rather than a manual script run
+- **A reproducible, code-driven pipeline**, run on demand (cloud scheduling was attempted but blocked by the site's bot protection)
+- **Fault-tolerant collection**, so a single failed page never loses a whole run
+- **Sale prices in USD, analyzed across neighborhoods**
 - **A documented dataset**, cleaned and published for reuse
 
 ## The problem
 
-Reliable time-series data on the Buenos Aires property market is scarce. Listings sit on portals like Zonaprop and Argenprop, but nobody publishes how prices move over time, how off-plan (pozo) units compare to finished ones, or how dollar and peso pricing diverge.
-
-This project collects that data independently to answer two questions: (1) how prices and listing dynamics vary across neighborhoods, and (2) how the USD versus peso gap shapes the market over time.
+This project collects data independently to answer how apartment prices vary across CABA neighborhoods.
 
 ## Planned approach
 
 1. **Reconnaissance**: inspect sources, map available fields, define the neighborhood scope
-2. **Schema and ingestion**: design the listings and snapshots model, build the first scraper end to end
-3. **Pipeline**: run tracking, fault tolerance, a second source, daily scheduling via GitHub Actions
-4. **Enrichment**: neighborhood normalization, currency handling, daily exchange rate ingestion
-5. **Analysis and release**: aggregate views, a written market report, a published dataset
+2. **Schema**: design the listings and snapshots model
+3. **Pipeline**: pagination, run tracking, fault tolerance
+4. **Enrichment**: neighborhood normalization
+5. **Analysis and release**: aggregate views, a written market report
 
 ## Tech stack
 
-Python, uv, httpx, BeautifulSoup, Playwright, PostgreSQL, SQLAlchemy, pandas, matplotlib, Jupyter, GitHub Actions
+Python, uv, httpx, BeautifulSoup, PostgreSQL, SQLAlchemy, pandas, matplotlib, Jupyter
 
 ## Project structure
 
 ```
 buenos-aires-real-estate/
-├── scrapers/    # source-specific scrapers + shared interface
+├── scrapers/    # Argenprop scraper + parser
 ├── db/          # schema + connection helpers
-├── pipeline/    # scrape orchestration, normalization, exchange rates
+├── pipeline/    # scrape orchestration, normalization
 ├── analysis/    # aggregate views (SQL)
 ├── report/      # written analysis + charts
 ├── data/        # released dataset + data dictionary
-└── .github/     # scheduled scraping workflow
+└── .github/     # (paused) scheduled scraping workflow
 ```
+
+## Limitations
+
+
+- **No price trends over time.** Property prices move slowly and listings stay up for weeks or months, so meaningful trend or days-on-market analysis would need many months of continuous collection to show real signal.
+- **Single source, single market.** Data comes only from Argenprop, and only for apartments for sale in CABA (Capital Federal). Other portals, property types, and the greater Buenos Aires province are not included.
+- **Collection runs locally.** Cloud scheduling via GitHub Actions was attempted but blocked by the site's bot protection, which rejects data-center IPs, so runs are triggered manually from a local machine instead.
