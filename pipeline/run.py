@@ -39,21 +39,20 @@ def collect_listings(base_url):
     for page in range(1, MAX_PAGES + 1):
         print(f"  page {page}...", end=" ", flush=True)
 
-        # intentar la página hasta 3 veces antes de rendirse (por timeouts puntuales)
         items = None
         for attempt in range(3):
             try:
                 items = parse_listings(fetch(page_url(base_url, page)))
                 break
             except Exception as e:
-                print(f"reintento ({type(e).__name__})...", end=" ", flush=True)
+                print(f"retry ({type(e).__name__})...", end=" ", flush=True)
                 time.sleep(5)
 
         if items is None:
-            print("la página falló tras varios intentos, corto y guardo lo que tengo.")
+            print("page failed after several retries, stopping and keeping what we have.")
             break
         if not items:
-            print("sin avisos, corto.")
+            print("no listings, stopping.")
             break
 
         new_here = 0
@@ -63,9 +62,9 @@ def collect_listings(base_url):
                 seen_ids.add(sid)
                 all_items.append(item)
                 new_here += 1
-        print(f"{len(items)} en la página, {new_here} nuevos")
+        print(f"{len(items)} on the page, {new_here} new")
         if new_here == 0:
-            print("  sin avisos nuevos, corto.")
+            print("  no new listings, stopping.")
             break
         time.sleep(DELAY_SECONDS)
 

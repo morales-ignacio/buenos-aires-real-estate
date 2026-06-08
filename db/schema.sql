@@ -25,8 +25,8 @@ CREATE TABLE IF NOT EXISTS listings (
     url              TEXT NOT NULL,
     operation        TEXT,
     property_type    TEXT,
-    neighborhood_id  INTEGER REFERENCES neighborhoods(id),
     raw_neighborhood TEXT,
+    neighborhood     TEXT,
     total_m2         NUMERIC,
     covered_m2       NUMERIC,
     ambientes        SMALLINT,
@@ -56,4 +56,3 @@ CREATE TABLE IF NOT EXISTS listing_snapshots (
 
 
 CREATE INDEX IF NOT EXISTS idx_snap_listing_time ON listing_snapshots (listing_id, captured_at);
-CREATE INDEX IF NOT EXISTS idx_listings_hood ON listings (neighborhood_id);
