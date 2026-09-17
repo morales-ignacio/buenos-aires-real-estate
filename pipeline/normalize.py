@@ -19,13 +19,40 @@ CLEANUP = {
     "Constitucion": "Constitución",
     "Agronomia": "Agronomía",
     "Boca": "La Boca",
+    # Mercado Libre lists these sub-zones as barrios of their own
+    "Palermo Hollywood": "Palermo",
+    "Palermo Soho": "Palermo",
+    "Palermo Chico": "Palermo",
+    "Palermo Nuevo": "Palermo",
+    "Palermo Viejo": "Palermo",
+    "Las Cañitas": "Palermo",
+    "Botánico": "Palermo",
+    "Belgrano R": "Belgrano",
+    "Belgrano C": "Belgrano",
+    "Belgrano Chico": "Belgrano",
+    "Belgrano Barrancas": "Belgrano",
+    "Villa Gral. Mitre": "Villa General Mitre",
+    "Santa Rita": "Villa Santa Rita",
+    "Velez Sarsfield": "Vélez Sársfield",     # ML writes it with no accents at all
+    "Villa Del Parque": "Villa del Parque",
+    "Paternal": "La Paternal",
 }
 
+CITY_NAMES = {"Capital Federal", "CABA"}   # Argenprop switched to "X, CABA" in 2026
+
+
 def clean_barrio(raw):
+    """Barrio from a raw location string, whatever its shape:
+    'Palermo Soho, Palermo' -> Palermo, 'Palermo, Capital Federal' -> Palermo,
+    'Villa Real, CABA' -> Villa Real, 'CABELLO 3881, Palermo, Capital Federal'
+    -> Palermo. The barrio is the last comma-separated part that isn't the city."""
     if raw in EXACT_OVERRIDES:
         return EXACT_OVERRIDES[raw]
-    a, b = raw.split(", ")
-    candidate = b if b != "Capital Federal" else a
+    parts = [p.strip() for p in raw.split(",")]
+    parts = [p for p in parts if p and p not in CITY_NAMES]
+    if not parts:
+        return None
+    candidate = parts[-1]
     return CLEANUP.get(candidate, candidate)
 
 
