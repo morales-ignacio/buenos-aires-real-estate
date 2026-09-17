@@ -40,15 +40,16 @@ Python, uv, httpx, BeautifulSoup, PostgreSQL, SQLAlchemy, pandas, matplotlib, Ju
 
 ## Project structure
 
-\`\`\`
-analysis/      eda.ipynb and queries.ipynb, the work behind the findings
-data/          the cleaned dataset (listings.csv) and its data_dictionary.md
-db/            schema.sql defines the tables, init_db.py creates them, connection.py connects
-pipeline/      run.py scrapes and loads listings; normalize.py standardizes barrios; export_dataset.py writes the published CSV
-report/        report.md, its charts, and make_figures.ipynb
-samples/       a saved Argenprop page used to develop the parser offline
-scrapers/      parses listing data out of Argenprop's HTML (parse_argenprop.py)
-\`\`\`
+```
+buenos-aires-real-estate/
+├── analysis/      eda.ipynb and queries.ipynb, the work behind the findings
+├── data/          the cleaned dataset (listings.csv) and its data_dictionary.md
+├── db/            schema.sql defines the tables, init_db.py creates them, connection.py connects
+├── pipeline/      run.py scrapes and loads, normalize.py cleans, export_dataset.py exports
+├── report/        report.md, its charts, and make_figures.ipynb
+├── samples/       a saved Argenprop page used to develop the parser offline
+└── scrapers/      parses listing data out of Argenprop's HTML (parse_argenprop.py)
+```
 
 
 ## How to run
